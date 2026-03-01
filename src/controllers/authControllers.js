@@ -1,0 +1,182 @@
+import bcrypt from "bcryptjs"
+import User from "../models/users.js"
+import jwt from "jsonwebtoken"
+import crypto from "crypto"
+import RefreshToken from "../models/refreshToken.js"
+import cookieParser from "cookie-parser"
+import dotenv from "dotenv"
+
+dotenv.config();
+const hashToken=(token)=> crypto.createHash("sha256").update(token).digest("hex");
+
+export const registerControllers=async(req,res)=>{
+  const {email,password,confirmPassword}=req.body;
+  try{
+    const userExists=await User.findOne({email});
+    if(userExists){
+      return res.status(403).json({message:"El usuario ya se encuentra registrado"});
+    }
+    const newUser=new User({
+      email,
+      password
+    });
+    await newUser.save();
+    res.json({message:"Usuario registrado correctamente"});
+  }catch(err){
+    if(err.code === 11000){
+     return res.json({message:err.message})
+    }
+    res.status(500).json({error:"Error en el servidor al registrar usuario"});
+    console.error("Error: ",err.message)
+  }
+};
+
+export const loginControllers=async (req,res)=>{
+  const{email,password}=req.body
+  try{
+    const userExists=await User.findOne({email});
+    if(!userExists){
+      return res.status(404).json({meaasge:"Credenciales incorrectas"})
+    }
+    const passwordUser=await bcrypt.compare(password,userExists.password);
+    if(!passwordUser){
+      return res.status(404).json({message:"Credenciales incorrectas"});
+    };
+    await RefreshToken.deleteMany({userId:userExists._id})
+    const payload={id:userExists._id};
+    const accessToken=jwt.sign(payload,process.env.JWT_SECRET,{expiresIn:"15m"});
+    const refreshToken=jwt.sign(payload,process.env.JWT_REFRESHTOKEN,{expiresIn:"7d"});
+    await RefreshToken.create({
+      userId:userExists._id,
+      token:hashToken(refreshToken),
+      expiresAt:new Date(Date.now() + 7 *24 *60 *60 * 1000)
+    });
+    res.cookie("refreshToken",refreshToken,{
+      httpOnly:true,
+      secure:true,
+      sameSite:"strict"
+    });
+    res.json({accessToken,message:"Login exitoso"});
+    
+  }catch(err){
+    res.status(500).json({error:"Error interno del servidor al hacer login"});
+    console.error("Error: ",err.message)
+  }
+}
+
+export const refreshTokenControllers=async(req,res)=>{
+  try{
+    const oldToken=req.cookies.refreshToken;
+    if(!oldToken){
+      return res.status(401).json({message:"Token requerido"});
+    };
+    const decoded=jwt.verify(oldToken,process.env.JWT_REFRESHTOKEN);
+    const hash=hashToken(oldToken);
+    const storedToken=await RefreshToken.findOne({
+      userId:decoded.id,
+      token:hash
+    });
+    if(!storedToken){
+      await RefreshToken.deleteMany({
+        userId:decoded.id
+      });
+      return res.status(401).json({message:"Token invalida o reutilizado"})
+    }
+    await storedToken.deleteOne();
+    const newAccessToken=jwt.sign(
+        {id:decoded.id},
+        process.env.JWT_SECRET,
+        {expiresIn:"15m"}
+      );
+    const newRefreshToken=jwt.sign(
+        {id:decoded.id},
+        process.env.JWT_REFRESHTOKEN,
+        {expiresIn:"7d"}
+      );
+  
+  await RefreshToken.create({
+    userId:decoded.id,
+    token:hashToken(newRefreshToken),
+    createAt:new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  });
+  
+  res.cookie("refreshToken",newRefreshToken,{
+    httpOnly:true,
+    secure:true,
+    sameSite:"strict"
+    
+  });
+  res.json({accessToken:newAccessToken})
+    
+  }catch(err){
+    res.status(401).json({
+      message:"RñefreshToken expirado o invalido"
+    })
+  }
+}
+
+export const logoutControllers=async(req,res)=>{
+  try{
+  const refreshToken=req.cookies.refreshToken;
+  if(refreshToken){
+    await RefreshToken.deleteOne({token: hashToken(refreshToken)});
+  };
+  res.clearCookies("refreshToken",{
+    httpOnly:true,
+    secure:true,
+    sameSite:"strict"
+  });
+  resjson({message:"cierre de sesión exitoso"})
+  }catch(err){
+    res.status(500).json({message:"Error sl cerrar sesión"})
+  }
+}
+
+export const changePassword=async(req,res,next)=>{
+  try{
+    const {currentPassword,newPassword}=req.body;
+    const user=await User.findById({id:req.user._id});
+    const match=bcrypt.compare(currentPassword,user.password);
+    if(!match){
+      return res.json({message:"Password incorrecto"});
+    };
+    user.password=await bcrypt.hash(newPassword,10);
+    await user.save();
+    await RefreshToken.deleteMany({userId:user._id});
+    res.clearCookie("refreshToken",{
+      httpOnly:true,
+      secure:true,
+      sameSite:"strict"
+    });
+    res.status(200).json({
+      message:"Contraseña actualizada correctamente, inicie sesión nuevamente"
+    })
+  }catch(err){
+    next(err)
+  }
+}
+
+export const forgotPassword=async(req,res,next)=>{
+  try{
+    const{email}=req.body;
+    const user=await User.findOne({email});
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    };
+    const resetToken=crypto.randomBytes(32).toString("hex");
+    const hashToken=crypto.createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+    
+    user.resetPasswordToken=hashToken;
+    user.resetPasswordExpire=Date.now() + 15 * 60 *1000;
+    user.save();
+    
+    const link=`${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    await sendResetEmail(user.email,link);
+    
+    res.json({message:"Email de recuperación enviado"});
+  }catch(err){
+    next(err)
+  }
+}
