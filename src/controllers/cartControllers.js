@@ -56,7 +56,6 @@ export const restProduct=async(req,res)=>{
   try{
     const userId=req.user.id;
     const {productId}=req.params;
-    const product=await Product.findById({productId});
     
     let cart=await Cart.findOne({userId});
     if(!cart){
@@ -65,7 +64,8 @@ export const restProduct=async(req,res)=>{
     const itemIndex=cart.items.findIndex(item=>item.productId.equals(productId));
     if(itemIndex === -1){
       return res.status(404).json({
-        message:"El producto no se encuentra en el carriti"
+        message:"El producto no se encuentra en el carrito",
+        error:typeof productId
       });
     };
     const item=cart.items[itemIndex];
@@ -78,6 +78,7 @@ export const restProduct=async(req,res)=>{
     return res.status(200).json(cart);
     }catch(err){
     res.status(500).json({message:"Error interno del servidor sl eliminar un producto"})
+    console.error(err.message)
   }
 }
 
@@ -91,7 +92,7 @@ export const deleteProduct=async(req,res)=>{
   };
   const itemIndex=cart.items.findIndex(item=>item.productId.equals(productId));
   if(itemIndex === -1){
-    return res.status(404).json({message:"El producto no existe en el carrito"});
+    return res.status(404).json({message:"El producto no existe en el carrito de compras"});
   };
   
     cart.items.splice(itemIndex,1);
@@ -99,7 +100,7 @@ export const deleteProduct=async(req,res)=>{
   await cart.save();
   return res.status(200).json(cart);
   }catch(err){
-    return res.status(500).json({message:"Errir al eliminar un producto del carrito"})
+    return res.status(500).json({message:"Error al eliminar un producto del carrito"})
   }
 }
 

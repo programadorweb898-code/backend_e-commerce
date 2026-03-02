@@ -8,7 +8,7 @@ router.get("/getProducts",getProducts)
 router.get("/getProduct/:id",getProduct);
 router.get("/categoryProducts/:category",getCategoryProducts);
 router.post("/addProduct",authentication,addProduct);
-router.patch("/restProduct",authentication,restProduct);
+router.patch("/restProduct/:productId",authentication,restProduct);
 router.delete("/deleteProduct",authentication,deleteProduct);
 router.delete("/deleteCart",authentication,deleteCart);
 export default router;
