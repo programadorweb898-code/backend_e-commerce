@@ -1,4 +1,5 @@
 import Cart from "../models/cart.js"
+import Product from "../models/products.js"
 
 export const getCart=async(req,res)=>{
   try{
@@ -16,7 +17,7 @@ export const getCart=async(req,res)=>{
   }
 };
 
-export const addCart=async(req,res)=>{
+export const addProduct=async(req,res)=>{
   try{
     const userId=req.user.id;
     const {productId,quantity}=req.body;
@@ -31,7 +32,7 @@ export const addCart=async(req,res)=>{
     if(!cart){
       cart=await Cart.create({
         userId,
-        items:[{productId,quantity}]
+        items:[{productId,quantity,priceSnapShot: product.price}]
       })
       return res.status(201).json(cart)
     };
@@ -40,13 +41,14 @@ export const addCart=async(req,res)=>{
     if(itemIndex > -1){
       cart.items[itemIndex].quantity += quantity;
     }else{
-      cart.items.push({productId,quantity});
+      cart.items.push({productId,quantity,priceSnapShot: product.price});
     }
     await cart.save();
     res.status(200).json(cart);
     
   }catch(err){
-    res.status(500).json({error:"Error sl agregar un producto al csrrrito"})
+    res.status(500).json({error:"Error al agregar un producto al carrito"});
+    console.error(err.message)
   }
 }
 
