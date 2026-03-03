@@ -17,6 +17,7 @@ export const authentication=(req,res,next)=>{
   req.user=decoded;
   next();
   }catch(err){
-    res.status(401).json({message:"El token es inválido o ha expirado"})
+    res.status(401).json({message:"El token es inválido o ha expirado"});
+    console.error("Error: ",err.message);
   }
 }

@@ -1,11 +1,12 @@
-import transporter from "../config/mail.js"
-export const sendResetEmail=asynx(to,link)=>{
+import {transporter} from "../config/mail.js"
+export const sendResetEmail=async(to,link)=>{
   await transporter.sendMail({
-    from: "soporte" <${process.env.EMAIL_USER}>,
-    to:
+    from: `soporte ${process.env.EMAIL_USER}`,
+    to,
     subject:"Restablecer contraseña",
-    html:
+    html:`
       <h1>Recuperar contraseña</h1>
-      <a href=`${link}`>${link}</a>
+      <a href="${link}">${link}</a>
+      `
   })
 }

@@ -13,7 +13,8 @@ export const getCart=async(req,res)=>{
     };
     res.status(200).json(cart);
   }catch(err){
-    res.status(500).json({message:"Error al obtener el carrito"})
+    res.status(500).json({message:"Error al obtener el carrito"});
+    console.error("Error: ",err.message);
   }
 };
 
@@ -32,7 +33,7 @@ export const addProduct=async(req,res)=>{
     if(!cart){
       cart=await Cart.create({
         userId,
-        items:[{productId,quantity,priceSnapShot: product.price}]
+        items:[{productId,quantity}]
       })
       return res.status(201).json(cart)
     };
@@ -41,14 +42,14 @@ export const addProduct=async(req,res)=>{
     if(itemIndex > -1){
       cart.items[itemIndex].quantity += quantity;
     }else{
-      cart.items.push({productId,quantity,priceSnapShot: product.price});
+      cart.items.push({productId,quantity});
     }
     await cart.save();
     res.status(200).json(cart);
     
   }catch(err){
-    res.status(500).json({error:"Error al agregar un producto al carrito"});
-    console.error(err.message)
+    res.status(500).json({error:"Error sl agregar un producto al csrrrito"});
+    console.error("Error: ",err.message);
   }
 }
 
@@ -56,7 +57,7 @@ export const restProduct=async(req,res)=>{
   try{
     const userId=req.user.id;
     const {productId}=req.params;
-    
+
     let cart=await Cart.findOne({userId});
     if(!cart){
       return res.status(404).json({message:"El carrito no existe"});
@@ -64,8 +65,7 @@ export const restProduct=async(req,res)=>{
     const itemIndex=cart.items.findIndex(item=>item.productId.equals(productId));
     if(itemIndex === -1){
       return res.status(404).json({
-        message:"El producto no se encuentra en el carrito",
-        error:typeof productId
+        message:"El producto no se encuentra en el carriti"
       });
     };
     const item=cart.items[itemIndex];
@@ -77,8 +77,8 @@ export const restProduct=async(req,res)=>{
     await cart.save();
     return res.status(200).json(cart);
     }catch(err){
-    res.status(500).json({message:"Error interno del servidor sl eliminar un producto"})
-    console.error(err.message)
+    res.status(500).json({message:"Error interno del servidor sl eliminar un producto"});
+    console.error("Error: ",err.message);
   }
 }
 
@@ -92,7 +92,7 @@ export const deleteProduct=async(req,res)=>{
   };
   const itemIndex=cart.items.findIndex(item=>item.productId.equals(productId));
   if(itemIndex === -1){
-    return res.status(404).json({message:"El producto no existe en el carrito de compras"});
+    return res.status(404).json({message:"El producto no existe en el carrito"});
   };
   
     cart.items.splice(itemIndex,1);
@@ -100,14 +100,15 @@ export const deleteProduct=async(req,res)=>{
   await cart.save();
   return res.status(200).json(cart);
   }catch(err){
-    return res.status(500).json({message:"Error al eliminar un producto del carrito"})
+    console.error("Error: ",err.message)
+    return res.status(500).json({message:"Errir al eliminar un producto del carrito"});
   }
 }
 
 export const deleteCart=async(req,res)=>{
   try{
     const userId=req.user.id;
-    const result=cart.updateOne(
+    const result=await Cart.updateOne(
         {userId},
         {$set:{items:[]}}
       );
@@ -120,6 +121,7 @@ export const deleteCart=async(req,res)=>{
         message:"Carrito vaciado correctamente"
       });
   }catch(err){
-    res.status(500).json({message:"Error al vaciar el carrito"})
+    res.status(500).json({message:"Error al vaciar el carrito"});
+    console.error("Error: ",err.message);
   }
 }

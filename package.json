@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./seed.js",
-    "dev": "nodemon ./src/index.js"
+    "dev": "nodemon ./src/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -22,9 +24,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1",
+    "nodemailer": "^8.0.1",
     "rate-limit-express": "^2.2.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "globals": "^17.4.0",
     "morgan": "^1.10.1",
     "nodemon": "^1.0.2"
   }

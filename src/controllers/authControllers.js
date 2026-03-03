@@ -3,8 +3,8 @@ import User from "../models/users.js"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import RefreshToken from "../models/refreshToken.js"
-import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
+import {sendResetEmail} from "../../services/emailService.js"
 
 dotenv.config();
 const hashToken=(token)=> crypto.createHash("sha256").update(token).digest("hex");
@@ -15,6 +15,10 @@ export const registerControllers=async(req,res)=>{
     const userExists=await User.findOne({email});
     if(userExists){
       return res.status(403).json({message:"El usuario ya se encuentra registrado"});
+    }else{
+      if(password !== confirmPassword){
+        return res.status(401).json({message:"Las contraseñas no coinciden"})
+      }
     }
     const newUser=new User({
       email,
@@ -110,8 +114,9 @@ export const refreshTokenControllers=async(req,res)=>{
     
   }catch(err){
     res.status(401).json({
-      message:"RñefreshToken expirado o invalido"
-    })
+      message:"RefreshToken expirado o invalido"
+    });
+    console.error("Error::",err.message)
   }
 }
 
@@ -121,22 +126,23 @@ export const logoutControllers=async(req,res)=>{
   if(refreshToken){
     await RefreshToken.deleteOne({token: hashToken(refreshToken)});
   };
-  res.clearCookies("refreshToken",{
+  res.clearCookie("refreshToken",{
     httpOnly:true,
     secure:true,
     sameSite:"strict"
   });
-  resjson({message:"cierre de sesión exitoso"})
+  res.json({message:"cierre de sesión exitoso"})
   }catch(err){
     res.status(500).json({message:"Error sl cerrar sesión"})
+    console.error("Error: ",err.message)
   }
 }
 
 export const changePassword=async(req,res,next)=>{
   try{
     const {currentPassword,newPassword}=req.body;
-    const user=await User.findById({id:req.user._id});
-    const match=bcrypt.compare(currentPassword,user.password);
+    const user=await User.findById(req.user._id);
+    const match=await bcrypt.compare(currentPassword,user.password);
     if(!match){
       return res.json({message:"Password incorrecto"});
     };
