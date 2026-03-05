@@ -33,7 +33,7 @@ export const addProduct=async(req,res)=>{
     if(!cart){
       cart=await Cart.create({
         userId,
-        items:[{productId,quantity}]
+        items:[{productId,quantity,priceSnapShot:product.price}]
       })
       return res.status(201).json(cart)
     };
@@ -42,7 +42,7 @@ export const addProduct=async(req,res)=>{
     if(itemIndex > -1){
       cart.items[itemIndex].quantity += quantity;
     }else{
-      cart.items.push({productId,quantity});
+      cart.items.push({productId,quantity,priceSnapShot:product.price});
     }
     await cart.save();
     res.status(200).json(cart);
