@@ -140,8 +140,11 @@ export const logoutControllers=async(req,res)=>{
 
 export const changePassword=async(req,res,next)=>{
   try{
-    const {currentPassword,newPassword}=req.body;
-    const user=await User.findById(req.user._id);
+    const {currentPassword,newPassword,confirmPassword}=req.body;
+    const user=await User.findById(req.user.id);
+    if(!user){
+      return res.status(404).json({message:"El usuario no existe"})
+    }
     const match=await bcrypt.compare(currentPassword,user.password);
     if(!match){
       return res.json({message:"Password incorrecto"});
@@ -158,7 +161,8 @@ export const changePassword=async(req,res,next)=>{
       message:"Contraseña actualizada correctamente, inicie sesión nuevamente"
     })
   }catch(err){
-    next(err)
+    next(err);
+    console.error("Error: ",err.stack)
   }
 }
 
