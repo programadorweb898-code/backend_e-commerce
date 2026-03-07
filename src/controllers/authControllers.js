@@ -149,7 +149,10 @@ export const changePassword=async(req,res,next)=>{
     if(!match){
       return res.json({message:"Password incorrecto"});
     };
-    user.password=await bcrypt.hash(newPassword,10);
+    if(currentPassword === newPassword){
+      return res.json({message:"La nueva contrasena deben ser diferente a la actual"});
+    }
+    user.password=newPassword;
     await user.save();
     await RefreshToken.deleteMany({userId:user._id});
     res.clearCookie("refreshToken",{
@@ -180,7 +183,7 @@ export const forgotPassword=async(req,res,next)=>{
     
     user.resetPasswordToken=hashToken;
     user.resetPasswordExpire=Date.now() + 15 * 60 *1000;
-    user.save();
+    await user.save();
     
     const link=`${process.env.CLIENT_URL}/reset-password/${resetToken}`;
     await sendResetEmail(user.email,link);

@@ -1,0 +1,23 @@
+[33mcommit c72b3d15c1fd61d6c26b61ba7953256a083e8298[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Luis <programadorweb898@gmail.com>
+Date:   Tue Mar 3 00:28:46 2026 -0300
+
+    Eslint correcto
+
+[33mcommit c6ec846720b8e97ce5c84111622655d3491b5360[m
+Author: luis alberto <programadorweb898@gmail.com>
+Date:   Mon Mar 2 00:04:28 2026 -0300
+
+    solicitud restProduct responde correctamente
+
+[33mcommit 8379ba8848e5369d20b43e252b16ab13482cac3d[m
+Author: luis alberto <programadorweb898@gmail.com>
+Date:   Sun Mar 1 21:51:37 2026 -0300
+
+    solicitud addCart funciona correctamente
+
+[33mcommit 797c4ad56cb8d87cb2b0787d7cb853a2fd3de10f[m
+Author: Luis <programadorweb898@gmail.com>
+Date:   Sun Mar 1 19:15:59 2026 -0300
+
+    setup backend e-commerce inicializado
