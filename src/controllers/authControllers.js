@@ -157,7 +157,7 @@ export const changePassword=async(req,res,next)=>{
     await RefreshToken.deleteMany({userId:user._id});
     res.clearCookie("refreshToken",{
       httpOnly:true,
-      secure:true,
+      secure:process.env.NODE_ENV === "production",
       sameSite:"strict"
     });
     res.status(200).json({

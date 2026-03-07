@@ -68,15 +68,25 @@ router.post("/login",[
       }
       return true;
     })
-    ],async(req,res,next)=>{
+    ],(req,res,next)=>{
       const errors=validationResult(req);
       if(!errors.isEmpty()){
-        return res.status(404).json({errors:errors.array()})
+        return res.status(400).json({errors:errors.array()})
       }
       next();
     },changePassword);
   
-  router.post("/forgot-password",forgotPassword);
+  router.post("/forgot-password",[
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Completar este campo")
+  ],(req,res,next)=>{
+    const errors=validationResult(req);
+    if(!errors.isEmpty()){
+      return res.status(400).json({errors:errors.array()});
+    }
+    next();
+  },forgotPassword);
 
 
 export default router;

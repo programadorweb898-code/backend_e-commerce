@@ -13,7 +13,10 @@ const userSchema=new Schema({
     match: [
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]{8,}$/,
       "Debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo"
-    ]}
+    ]},
+  resetPasswordToken:String,
+  resetPasswordExpire:Date
+
 },{timestamps:true});
 
 userSchema.pre("save",async function (){
