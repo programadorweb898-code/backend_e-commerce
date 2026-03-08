@@ -1,4 +1,7 @@
 import {transporter} from "../config/mail.js"
+import dotenv from "dotenv"
+dotenv.config();
+
 export const sendResetEmail=async(to,link)=>{
   await transporter.sendMail({
     from: `soporte ${process.env.EMAIL_USER}`,

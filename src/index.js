@@ -6,6 +6,7 @@ import router from "./routes/authRoutes.js"
 import connectDb from "../config/db.js"
 import products from "./routes/productRoutes.js"
 import cookieParser from "cookie-parser"
+import payment from "./routes/paymentRoutes.js"
 
 connectDb();
 dotenv.config();
@@ -15,8 +16,9 @@ app.use(cors());
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use("/api",router);
-app.use("/products",products)
-const PORT=process.env.PORT || 3000
+app.use("/products",products);
+app.use("/payments",payment);
+const PORT=process.env.PORT || 3000;
 
 app.use((req,res)=>{
   res.status(404).json({message:"Ruta no encontrada"});
