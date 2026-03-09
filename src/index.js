@@ -7,6 +7,7 @@ import connectDb from "../config/db.js"
 import products from "./routes/productRoutes.js"
 import cookieParser from "cookie-parser"
 import payment from "./routes/paymentRoutes.js"
+import { setupSwagger } from "../config/swagger.js"
 
 connectDb();
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(cookieParser());
+setupSwagger(app);
 app.use("/api",router);
 app.use("/products",products);
 app.use("/payments",payment);
