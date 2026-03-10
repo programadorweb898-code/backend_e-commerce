@@ -1,0 +1,70 @@
+import Order from "../models/orders.js";
+import Cart from "../models/cart.js";
+import Product from "../models/products.js";
+
+export const getUserOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    res.json({ orders });
+  } catch (err) {
+    res.status(500).json({ message: "Error al obtener los pedidos" });
+    console.error("Error: ", err.message);
+  }
+};
+
+export const createOrderFromCart = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { paymentIntentId } = req.body;
+
+    // 1. Obtener el carrito con datos de productos
+    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: "El carrito está vacío" });
+    }
+
+    // 2. Calcular el total y preparar los ítems del pedido
+    let totalAmount = 0;
+    const orderItems = [];
+
+    for (const item of cart.items) {
+      const product = item.productId;
+      
+      // Verificar stock nuevamente por seguridad
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ message: `Stock insuficiente para ${product.title}` });
+      }
+
+      // Restar stock
+      product.stock -= item.quantity;
+      await product.save();
+
+      orderItems.push({
+        productId: product._id,
+        title: product.title,
+        quantity: item.quantity,
+        priceAtPurchase: product.price
+      });
+      totalAmount += product.price * item.quantity;
+    }
+
+    // 3. Crear el pedido
+    const newOrder = await Order.create({
+      userId,
+      items: orderItems,
+      totalAmount,
+      status: "paid", // Asumimos pagado si viene de Stripe
+      paymentIntentId
+    });
+
+    // 4. Vaciar el carrito
+    cart.items = [];
+    await cart.save();
+
+    res.status(201).json({ message: "Pedido creado correctamente", order: newOrder });
+  } catch (err) {
+    res.status(500).json({ message: "Error al crear el pedido", error: err.message });
+    console.error("Error: ", err.message);
+  }
+};

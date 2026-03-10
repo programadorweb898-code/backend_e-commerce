@@ -1,7 +1,8 @@
-import {Router} from "express"
-import {createCheckoutSession} from "../controllers/paymentControllers.js"
+import { Router } from "express";
+import { createCheckoutSession } from "../controllers/paymentControllers.js";
+import { authentication } from "../middlewares/authentication.js";
 
-const router=Router();
+const router = Router();
 
 /**
  * @swagger
@@ -16,12 +17,16 @@ const router=Router();
  *   post:
  *     summary: Crear una sesión de pago en Stripe
  *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Sesión de pago creada exitosamente, devuelve la URL de Stripe
+ *       401:
+ *         description: No autorizado
  *       500:
  *         description: Error al crear la sesión de pago
  */
-router.post("/checkout",createCheckoutSession);
+router.post("/checkout", authentication, createCheckoutSession);
 
 export default router;

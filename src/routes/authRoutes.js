@@ -1,6 +1,6 @@
 import {Router} from "express"
 import {body,validationResult} from "express-validator"
-import {registerControllers,loginControllers,logoutControllers,refreshTokenControllers,changePassword,forgotPassword} from "../controllers/authControllers.js"
+import {registerControllers,loginControllers,logoutControllers,refreshTokenControllers,changePassword,forgotPassword,resetPassword} from "../controllers/authControllers.js"
 import {authentication} from "../middlewares/authentication.js"
 
 const router=Router();
@@ -229,6 +229,55 @@ router.post("/login",[
     }
     next();
   },forgotPassword);
+
+/**
+ * @swagger
+ * /api/reset-password/{token}:
+ *   post:
+ *     summary: Restablecer la contraseña usando el token de recuperación
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *               - confirmPassword
+ *             properties:
+ *               password:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Contraseña restablecida correctamente
+ *       400:
+ *         description: Token inválido, expirado o error en las contraseñas
+ */
+router.post("/reset-password/:token",[
+  body("password")
+  .trim()
+  .notEmpty().withMessage("Completar este campo")
+  .isLength({min:8,max:20}).withMessage("Longitud incorrecta")
+  .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-])[A-Za-z\d@$!%*?&.#_-]+$/).withMessage("Formato incorrecto"),
+  body("confirmPassword")
+  .trim()
+  .notEmpty().withMessage("Completar este campo")
+],(req,res,next)=>{
+  const errors=validationResult(req);
+  if(!errors.isEmpty()){
+    return res.status(400).json({errors:errors.array()});
+  }
+  next();
+},resetPassword);
 
 
 export default router;

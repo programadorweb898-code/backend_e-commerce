@@ -1,47 +1,58 @@
+import Product from "../models/products.js";
 
-export const getProducts=async(req,res,next)=>{
-  const{max,min}=req.query;
-  try{
-    const response=await fetch("http://fakestoreapi.com/products");
-    if(!response.ok){
-      throw new Error("Error al obtener todos los productos")
+export const getProducts = async (req, res, next) => {
+  const { max, min } = req.query;
+  try {
+    const query = { isActive: true };
+    
+    if (min || max) {
+      query.price = {};
+      if (min) query.price.$gte = Number(min);
+      if (max) query.price.$lte = Number(max);
     }
 
-    let result=await response.json();
-    const filtered=result.filter((items)=>{
-      const price=items.price;
-      if(min && price < Number(min)) return false;
-      if(max && price > Number(max) ) return false;
-      return true;
-    })
-    res.json({productos:filtered});
-  }catch(err){
-    next(err)
+    const productos = await Product.find(query);
+    res.json({ productos });
+  } catch (err) {
+    next(err);
   }
 };
 
-export const getProduct=async(req,res,next)=>{
-  try{
-    const response=await fetch(`http://fakestoreapi.com/products/${req.params.id}`);
-    if(!response.ok){
-      throw new Error("Error al obtener un producto")
-    };
-    const result=await response.json();
-    res.json({producto:result})
-  }catch(err){
-    next(err)
-  }
-};;
+export const getProduct = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // Buscamos primero por el ID de MongoDB y si no, por el fakeStoreId
+    let producto = await Product.findOne({
+      $or: [
+        { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+        { fakeStoreId: isNaN(id) ? null : Number(id) }
+      ].filter(cond => cond !== null && Object.values(cond)[0] !== null)
+    });
 
-export const getCategoryProducts=async(req,res,next)=>{
-  try{
-    const response=await fetch(`http://fakestoreapi.com/products/category/${req.params.category}`);
-    if(!response.ok){
-      throw new Error("La categoria no existe");
-    };
-    const result=await response.json();
-    res.json({productos:result})
-  }catch(err){
+    if (!producto) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    res.json({ producto });
+  } catch (err) {
     next(err);
   }
-}
+};
+
+export const getCategoryProducts = async (req, res, next) => {
+  const { category } = req.params;
+  try {
+    const productos = await Product.find({ 
+      category: new RegExp(`^${category}$`, "i"), // Búsqueda insensible a mayúsculas
+      isActive: true 
+    });
+
+    if (productos.length === 0) {
+      return res.status(404).json({ message: "La categoría no existe o no tiene productos" });
+    }
+
+    res.json({ productos });
+  } catch (err) {
+    next(err);
+  }
+};

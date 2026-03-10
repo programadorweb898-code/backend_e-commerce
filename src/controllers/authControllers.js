@@ -14,7 +14,7 @@ export const registerControllers=async(req,res)=>{
   try{
     const userExists=await User.findOne({email});
     if(userExists){
-      return res.status(403).json({message:"El usuario ya se encuentra registrado"});
+      return res.status(403).json({message:"el usuario ya existe"});
     }else{
       if(password !== confirmPassword){
         return res.status(401).json({message:"Las contraseñas no coinciden"})
@@ -40,7 +40,7 @@ export const loginControllers=async (req,res)=>{
   try{
     const userExists=await User.findOne({email});
     if(!userExists){
-      return res.status(404).json({meaasge:"Credenciales incorrectas"})
+      return res.status(404).json({message:"Credenciales incorrectas"})
     }
     const passwordUser=await bcrypt.compare(password,userExists.password);
     if(!passwordUser){
@@ -147,10 +147,10 @@ export const changePassword=async(req,res,next)=>{
     }
     const match=await bcrypt.compare(currentPassword,user.password);
     if(!match){
-      return res.json({message:"Password incorrecto"});
+      return res.status(400).json({message:"Password incorrecto"});
     };
     if(currentPassword === newPassword){
-      return res.json({message:"La nueva contrasena deben ser diferente a la actual"});
+      return res.status(400).json({message:"La nueva contraseña debe ser diferente a la actual"});
     }
     user.password=newPassword;
     await user.save();
@@ -177,18 +177,46 @@ export const forgotPassword=async(req,res,next)=>{
       return res.status(404).json({message:"Usuario no encontrado"});
     };
     const resetToken=crypto.randomBytes(32).toString("hex");
-    const hashToken=crypto.createHash("sha256")
+    const tokenHash=crypto.createHash("sha256")
     .update(resetToken)
     .digest("hex");
     
-    user.resetPasswordToken=hashToken;
+    user.resetPasswordToken=tokenHash;
     user.resetPasswordExpire=Date.now() + 15 * 60 *1000;
     await user.save();
     
     const link=`${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-    await sendResetEmail(user.email,link);
+    
+    if (process.env.NODE_ENV !== "test") {
+      await sendResetEmail(user.email,link);
+    }
     
     res.json({message:"Email de recuperación enviado"});
+  }catch(err){
+    next(err)
+  }
+}
+
+export const resetPassword=async(req,res,next)=>{
+  try{
+    const {token}=req.params;
+    const {password,confirmPassword}=req.body;
+    if(password !== confirmPassword){
+      return res.status(400).json({message:"Las contraseñas no coinciden"})
+    };
+    const tokenHash=crypto.createHash("sha256").update(token).digest("hex");
+    const user=await User.findOne({
+      resetPasswordToken:tokenHash,
+      resetPasswordExpire:{$gt:Date.now()}
+    });
+    if(!user){
+      return res.status(400).json({message:"Token invalido o expirado"})
+    };
+    user.password=password;
+    user.resetPasswordToken=undefined;
+    user.resetPasswordExpire=undefined;
+    await user.save();
+    res.json({message:"Contraseña restablecida correctamente"});
   }catch(err){
     next(err)
   }

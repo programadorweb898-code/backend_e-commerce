@@ -7,7 +7,8 @@
     "start": "node ./seed.js",
     "dev": "nodemon ./src/index.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.js"
   },
   "keywords": [],
   "author": "",
@@ -32,9 +33,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "cross-env": "^10.1.0",
     "eslint": "^10.0.2",
     "globals": "^17.4.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.1",
     "morgan": "^1.10.1",
-    "nodemon": "^1.0.2"
+    "nodemon": "^1.0.2",
+    "supertest": "^7.2.2"
   }
 }
