@@ -1,7 +1,7 @@
 import Product from "../models/products.js";
 
 export const getProducts = async (req, res, next) => {
-  const { max, min } = req.query;
+  const { max, min, search } = req.query;
   try {
     const query = { isActive: true };
     
@@ -9,6 +9,24 @@ export const getProducts = async (req, res, next) => {
       query.price = {};
       if (min) query.price.$gte = Number(min);
       if (max) query.price.$lte = Number(max);
+    }
+
+    if (search) {
+      const s = search.toLowerCase();
+      // Si busca "w", filtramos por categorías que empiecen con "w" (como women's clothing)
+      // Si busca "clothing", incluimos men y women
+      if (s === 'w' || s === 'women') {
+        query.category = { $regex: "^women", $options: "i" };
+      } else if (s === 'm' || s === 'men') {
+        query.category = { $regex: "^men", $options: "i" };
+      } else if (s.includes('clothing')) {
+        query.category = { $regex: "clothing", $options: "i" };
+      } else {
+        query.$or = [
+          { title: { $regex: `^${search}`, $options: "i" } },
+          { category: { $regex: `^${search}`, $options: "i" } }
+        ];
+      }
     }
 
     const productos = await Product.find(query);
@@ -42,8 +60,10 @@ export const getProduct = async (req, res, next) => {
 export const getCategoryProducts = async (req, res, next) => {
   const { category } = req.params;
   try {
+    // Si es clothing, buscamos por coincidencia parcial para incluir men y women
+    const searchPattern = category.toLowerCase().includes('clothing') ? 'clothing' : `^${category}$`;
     const productos = await Product.find({ 
-      category: new RegExp(`^${category}$`, "i"), // Búsqueda insensible a mayúsculas
+      category: new RegExp(searchPattern, "i"), 
       isActive: true 
     });
 
