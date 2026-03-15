@@ -1,7 +1,7 @@
 import {Router} from "express"
 import {getProducts,getProduct,getCategoryProducts} from "../controllers/productsControllers.js"
 import {authentication} from "../middlewares/authentication.js"
-import {addProduct, deleteCart, deleteProduct, restProduct} from "../controllers/cartControllers.js"
+import {addProduct, getCart, deleteCart, deleteProduct, restProduct} from "../controllers/cartControllers.js"
 
 const router=Router();
 
@@ -13,6 +13,20 @@ const router=Router();
  *   - name: Cart
  *     description: Endpoints para la gestión del carrito de compras
  */
+
+/**
+ * @swagger
+ * /products/getCart:
+ *   get:
+ *     summary: Obtener el carrito del usuario
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Carrito obtenido con éxito
+ */
+router.get("/getCart",authentication,getCart);
 
 /**
  * @swagger

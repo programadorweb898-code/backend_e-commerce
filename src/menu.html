@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menú Home - Mas Vendidos - Venta Telefónica - Ayuda</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .tabs { display: flex; gap: 14px; margin-bottom: 24px; }
+    .tab { padding: 10px 14px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 6px; text-decoration: none; color: #333; display: inline-flex; align-items: center; gap: 8px; }
+    .tab:hover { background: #e3e3e3; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: white; border-radius: 8px; padding: 20px; min-width: 260px; box-shadow: 0 8px 20px rgba(0,0,0,.18); }
+    .modal h2 { margin-top: 0; }
+    .modal button { margin-top: 16px; padding: 8px 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <a class="tab" href="http://localhost:3000" target="_blank" rel="noopener noreferrer">
+      <span>🏠</span><span>Home</span>
+    </a>
+    <span class="tab" style="cursor: default;">
+      <span>🔥</span><span>Más vendidos</span>
+    </span>
+    <button class="tab" id="ventaTelefonicaBtn" type="button">
+      <span>📞</span><span>Venta telefónico</span>
+    </button>
+    <a class="tab" href="ayuda.html">
+      <span>❓</span><span>Ayuda</span>
+    </a>
+  </div>
+
+  <p>Este ejemplo cumple con:</p>
+  <ul>
+    <li>Home con icono de casa y redirección a <code>http://localhost:3000</code>.</li>
+    <li>Productos renombrado a <strong>Más vendidos</strong>.</li>
+    <li>Venta telefónico abre cuadro emergente con datos.</li>
+    <li>Ayuda redirige a página de soporte.</li>
+  </ul>
+
+  <div id="ventaModal" class="modal-backdrop" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+    <div class="modal">
+      <h2 id="modalTitle">Venta online</h2>
+      <p>Teléfono de contacto: <strong>+54 9 11 1234 5678</strong></p>
+      <p>Horario de atención: Lunes a Viernes de 09:00 a 19:00.</p>
+      <button id="cerrarModal">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    const ventaBtn = document.getElementById('ventaTelefonicaBtn');
+    const modal = document.getElementById('ventaModal');
+    const cerrar = document.getElementById('cerrarModal');
+
+    ventaBtn.addEventListener('click', () => {
+      modal.style.display = 'flex';
+    });
+
+    cerrar.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

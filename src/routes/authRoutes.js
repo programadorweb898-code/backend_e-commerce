@@ -2,6 +2,7 @@ import {Router} from "express"
 import {body,validationResult} from "express-validator"
 import {registerControllers,loginControllers,logoutControllers,refreshTokenControllers,changePassword,forgotPassword,resetPassword} from "../controllers/authControllers.js"
 import {authentication} from "../middlewares/authentication.js"
+import User from "../models/users.js"
 
 const router=Router();
 /**
@@ -134,7 +135,31 @@ router.post("/login",[
  *       200:
  *         description: Sesión cerrada correctamente
  */
-  router.post("/logout",logoutControllers);
+router.post("/logout",logoutControllers);
+
+/**
+ * @swagger
+ * /api/me:
+ *   get:
+ *     summary: Obtener el usuario autenticado
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Datos del usuario
+ */
+router.get("/me", authentication, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Error al obtener perfil" });
+  }
+});
   
 /**
  * @swagger
