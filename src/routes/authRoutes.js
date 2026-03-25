@@ -63,7 +63,7 @@ router.post("/register",[
   ],(req,res,next)=>{
     const errors=validationResult(req);
     if(!errors.isEmpty()){
-      return res.json({errors:errors.array()})
+      return res.status(400).json({errors:errors.array()})
     }
     next();
   },registerControllers);
@@ -156,7 +156,7 @@ router.get("/me", authentication, async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
     res.json(user);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Error al obtener perfil" });
   }
 });

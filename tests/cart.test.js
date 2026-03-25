@@ -2,7 +2,6 @@ import request from "supertest";
 import app from "../src/app.js";
 import * as dbHandler from "./db-handler.js";
 import Product from "../src/models/products.js";
-import User from "../src/models/users.js";
 
 let token;
 let productId;

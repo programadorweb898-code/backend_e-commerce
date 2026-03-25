@@ -53,11 +53,11 @@ export const loginControllers=async (req,res)=>{
     await RefreshToken.create({
       userId:userExists._id,
       token:hashToken(refreshToken),
-      expiresAt:new Date(Date.now() + 7 *24 *60 *60 * 1000)
+      createAt:new Date()
     });
     res.cookie("refreshToken",refreshToken,{
       httpOnly:true,
-      secure:true,
+      secure:process.env.NODE_ENV === "production",
       sameSite:"strict"
     });
     res.json({accessToken,message:"Login exitoso"});
@@ -101,12 +101,12 @@ export const refreshTokenControllers=async(req,res)=>{
   await RefreshToken.create({
     userId:decoded.id,
     token:hashToken(newRefreshToken),
-    createAt:new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    createAt:new Date()
   });
   
   res.cookie("refreshToken",newRefreshToken,{
     httpOnly:true,
-    secure:true,
+    secure:process.env.NODE_ENV === "production",
     sameSite:"strict"
     
   });
@@ -128,7 +128,7 @@ export const logoutControllers=async(req,res)=>{
   };
   res.clearCookie("refreshToken",{
     httpOnly:true,
-    secure:true,
+    secure:process.env.NODE_ENV === "production",
     sameSite:"strict"
   });
   res.json({message:"cierre de sesión exitoso"})
@@ -140,7 +140,7 @@ export const logoutControllers=async(req,res)=>{
 
 export const changePassword=async(req,res,next)=>{
   try{
-    const {currentPassword,newPassword,confirmPassword}=req.body;
+    const {currentPassword,newPassword}=req.body;
     const user=await User.findById(req.user.id);
     if(!user){
       return res.status(404).json({message:"El usuario no existe"})

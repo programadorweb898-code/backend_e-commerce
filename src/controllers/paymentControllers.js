@@ -1,7 +1,6 @@
 import Stripe from "stripe";
 import dotenv from "dotenv";
 import Cart from "../models/cart.js";
-import Product from "../models/products.js";
 import { sendPurchaseDetailsEmail } from "../../services/emailService.js";
 
 dotenv.config();
@@ -11,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export const createCheckoutSession = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { lang } = req.body; // Recibimos el idioma del frontend
+    const { lang } = req.body || {}; // Recibimos el idioma del frontend
     console.log("Idioma recibido para Stripe Checkout:", lang || "es (por defecto)");
 
     const cart = await Cart.findOne({ userId }).populate("items.productId");
@@ -49,10 +48,14 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const confirmPayment = async (req, res) => {
-  const { session_id, lang } = req.body;
+  const { session_id, lang } = req.body || {};
   console.log("Confirmando pago en el servidor con idioma:", lang || "es (por defecto)");
 
   try {
+    if (!session_id) {
+      return res.status(400).json({ message: "Falta session_id" });
+    }
+
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
     if (session.payment_status === "paid") {

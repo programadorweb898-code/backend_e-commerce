@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./seed.js",
+    "start": "node ./src/index.js",
+    "seed": "node ./seed.js",
     "dev": "nodemon ./src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -24,6 +25,7 @@
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
     "mongoose": "^9.2.1",
     "nodemailer": "^8.0.1",
     "rate-limit-express": "^2.2.2",
@@ -38,7 +40,6 @@
     "globals": "^17.4.0",
     "jest": "^30.2.0",
     "mongodb-memory-server": "^11.0.1",
-    "morgan": "^1.10.1",
     "nodemon": "^1.0.2",
     "supertest": "^7.2.2"
   }

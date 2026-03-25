@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
 import router from "./routes/authRoutes.js";
-import connectDb from "../config/db.js";
 import products from "./routes/productRoutes.js";
 import cookieParser from "cookie-parser";
 import payment from "./routes/paymentRoutes.js";

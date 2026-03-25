@@ -22,27 +22,31 @@ export const addProduct = async (req, res) => {
   try {
     const userId = req.user.id;
     const { productId, quantity } = req.body;
+    const qty = Number(quantity);
+    if (!Number.isInteger(qty) || qty < 1) {
+      return res.status(400).json({ message: "Cantidad inválida" });
+    }
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "El producto no existe" });
     }
-    if (product.stock < quantity) {
+    if (product.stock < qty) {
       return res.status(400).json({ message: "Stock insuficiente" });
     }
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = await Cart.create({
         userId,
-        items: [{ productId, quantity, priceSnapShot: product.price }]
+        items: [{ productId, quantity: qty, priceSnapShot: product.price }]
       })
       return res.status(201).json(cart)
     }
     const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
 
     if (itemIndex > -1) {
-      cart.items[itemIndex].quantity += quantity;
+      cart.items[itemIndex].quantity += qty;
     } else {
-      cart.items.push({ productId, quantity, priceSnapShot: product.price });
+      cart.items.push({ productId, quantity: qty, priceSnapShot: product.price });
     }
     await cart.save();
     res.status(200).json(cart);
