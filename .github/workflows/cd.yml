@@ -15,4 +15,4 @@ jobs:
         run: |
           curl -fsS -X POST "$MI_RENDER_DEPLOY_HOOK"
         env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          MI_RENDER_DEPLOY_HOOK: ${{ secrets.MI_RENDER_DEPLOY_HOOK }}
