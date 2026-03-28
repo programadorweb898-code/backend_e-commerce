@@ -21,7 +21,6 @@ const seedProducts=async()=>{
       stock:10
     })
   }
-  console.log("productos insertados");
   process.exit();
 }
 seedProducts();

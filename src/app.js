@@ -12,17 +12,14 @@ import { setupSwagger } from "../config/swagger.js";
 dotenv.config();
 const app = express();
 
-// Configuración de orígenes permitidos
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   "http://127.0.0.1:3000"
 ];
 
-// Configuración de middlewares
 app.use(express.json());
 app.use(cors({
   origin: (origin, callback) => {
-    // Permitir solicitudes sin origen (como herramientas de prueba) o si el origen está permitido
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -36,16 +33,13 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// Documentación
 setupSwagger(app);
 
-// Rutas
 app.use("/api", router);
 app.use("/products", products);
 app.use("/payments", payment);
 app.use("/api/orders", orders);
 
-// Manejo de errores
 app.use((req, res) => {
   res.status(404).json({ message: "Ruta no encontrada" });
 });

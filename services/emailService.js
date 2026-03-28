@@ -24,16 +24,15 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
   const qtyText = isEn ? "Quantity" : "Cantidad";
   const priceText = isEn ? "Unit Price" : "Precio unitario";
 
-  // Preparamos los adjuntos para las imágenes incrustadas (cid)
   const attachments = [];
 
   const itemsHtml = cartItems.map((item, index) => {
     let imageUrl = (item.productId?.image || "").trim();
+    // Normalizamos la URL para que Nodemailer pueda descargarla de forma consistente.
     if (imageUrl.startsWith("http://")) {
       imageUrl = imageUrl.replace("http://", "https://");
     }
     
-    // Si la URL es relativa, la convertimos a absoluta para que Nodemailer pueda descargarla
     if (imageUrl.startsWith("/")) {
       const baseUrl = process.env.CLIENT_URL || "http://localhost:3000";
       imageUrl = `${baseUrl}${imageUrl}`;
@@ -41,7 +40,6 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
 
     const cid = `product-image-${index}`;
     
-    // Añadimos la imagen a los adjuntos si existe
     if (imageUrl) {
       attachments.push({
         filename: `product-${index}.jpg`,
@@ -56,7 +54,6 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
     return `
       <tr>
         <td style="padding: 15px 0; border-bottom: 1px solid #edf2f7; vertical-align: middle;" width="80">
-          <!-- Referenciamos la imagen usando cid: -->
           <img src="cid:${cid}" 
                alt="${itemTitle}" 
                width="80" 
@@ -85,7 +82,7 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
     from: `Soporte E-Commerce <${process.env.USER_EMAIL}>`,
     to,
     subject,
-    attachments, // Pasamos el array de adjuntos con sus cids
+    attachments,
     html: `
       <div style="background-color: #f7fafc; padding: 40px 10px; font-family: Arial, sans-serif;">
         <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">

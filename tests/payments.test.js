@@ -47,7 +47,6 @@ beforeAll(async () => {
   app = (await import("../src/app.js")).default;
   await dbHandler.connect();
   
-  // Crear usuario para obtener token
   const userData = { email: "pay@test.com", password: "Password123!", confirmPassword: "Password123!" };
   await request(app).post("/api/register").send(userData);
   const loginRes = await request(app).post("/api/login").send({
@@ -59,7 +58,6 @@ beforeAll(async () => {
   const user = await User.findOne({ email: userData.email });
   userId = user?._id;
 
-  // Crear producto de prueba
   const product = await Product.create({
     fakeStoreId: 200,
     title: "Producto Pago",
@@ -94,13 +92,11 @@ describe("Payment Controller", () => {
   });
 
   test("Debe crear una sesión de pago exitosamente", async () => {
-    // 1. Agregamos producto al carrito primero
     await request(app)
       .post("/products/addProduct")
       .set("Authorization", `Bearer ${token}`)
       .send({ productId: productId.toString(), quantity: 1 });
 
-    // 2. Intentamos crear el checkout
     const response = await request(app)
       .post("/payments/checkout")
       .set("Authorization", `Bearer ${token}`);

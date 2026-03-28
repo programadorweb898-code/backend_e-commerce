@@ -10,8 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export const createCheckoutSession = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { lang } = req.body || {}; // Recibimos el idioma del frontend
-    console.log("Idioma recibido para Stripe Checkout:", lang || "es (por defecto)");
+    const { lang } = req.body || {};
 
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     
@@ -35,7 +34,7 @@ export const createCheckoutSession = async (req, res) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      locale: lang || "es", // Aquí configuramos el idioma de Stripe
+      locale: lang || "es",
       success_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/success?session_id={CHECKOUT_SESSION_ID}&lang=${lang || "es"}`,
       cancel_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/cancel`,
     });
@@ -49,7 +48,6 @@ export const createCheckoutSession = async (req, res) => {
 
 export const confirmPayment = async (req, res) => {
   const { session_id, lang } = req.body || {};
-  console.log("Confirmando pago en el servidor con idioma:", lang || "es (por defecto)");
 
   try {
     if (!session_id) {
@@ -61,7 +59,6 @@ export const confirmPayment = async (req, res) => {
     if (session.payment_status === "paid") {
       const userId = req.user.id;
       
-      // Buscar al usuario para obtener su email real
       const User = (await import("../models/users.js")).default;
       const user = await User.findById(userId);
       
@@ -70,14 +67,12 @@ export const confirmPayment = async (req, res) => {
       }
 
       const userEmail = user.email;
-      console.log("Intentando enviar email a:", userEmail);
 
       const cart = await Cart.findOne({ userId }).populate("items.productId");
 
       if (cart && cart.items.length > 0) {
         const total = cart.items.reduce((sum, item) => sum + (item.productId.price * item.quantity), 0);
         
-        // Extraemos los datos necesarios en un objeto simple para que no se pierdan al vaciar el carrito
         const itemsForEmail = cart.items.map(item => ({
           quantity: item.quantity,
           productId: {
@@ -87,14 +82,12 @@ export const confirmPayment = async (req, res) => {
           }
         }));
 
-        // 1. VACIAR EL CARRITO PRIMERO (Prioridad técnica)
+        // Vaciamos primero para evitar reintentos duplicando pedidos si el email falla.
         cart.items = [];
         await cart.save();
 
-        // 2. INTENTAR ENVIAR EL EMAIL
         try {
           await sendPurchaseDetailsEmail(userEmail, itemsForEmail, total, lang || "es");
-          console.log("Email de confirmación enviado a:", userEmail);
         } catch (emailError) {
           console.error("Error NO CRÍTICO al enviar email:", emailError.message);
         }

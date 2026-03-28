@@ -42,7 +42,6 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await dbHandler.clearDatabase();
-  // Insertamos productos de prueba antes de cada test
   await Product.insertMany(testProducts);
 });
 
@@ -62,13 +61,13 @@ describe("Products Controller", () => {
     test("Debe filtrar productos por precio máximo", async () => {
       const response = await request(app).get("/products/getProducts?max=150");
       expect(response.status).toBe(200);
-      expect(response.body.productos).toHaveLength(2); // El de 100 y el de 50
+      expect(response.body.productos).toHaveLength(2);
     });
 
     test("Debe filtrar productos por rango de precio", async () => {
       const response = await request(app).get("/products/getProducts?min=150&max=250");
       expect(response.status).toBe(200);
-      expect(response.body.productos).toHaveLength(1); // Solo el de 200
+      expect(response.body.productos).toHaveLength(1);
       expect(response.body.productos[0].price).toBe(200);
     });
   });

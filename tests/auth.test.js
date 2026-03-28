@@ -6,7 +6,6 @@ import User from "../src/models/users.js";
 import RefreshToken from "../src/models/refreshToken.js";
 import crypto from "crypto";
 
-// Mock de nodemailer para evitar el envío real de correos
 jest.mock("nodemailer", () => ({
   createTransport: jest.fn().mockReturnValue({
     sendMail: jest.fn().mockResolvedValue({ messageId: "test-id" })
@@ -67,7 +66,6 @@ describe("Auth Controller", () => {
       const rawToken = "testtoken123";
       const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
       
-      // Inyectamos el token directamente en la DB para la prueba
       await User.findOneAndUpdate(
         { email: testUser.email },
         { 
@@ -87,7 +85,6 @@ describe("Auth Controller", () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("message", "Contraseña restablecida correctamente");
 
-      // Verificar que el login funciona con la nueva contraseña
       const loginRes = await request(app)
         .post("/api/login")
         .send({
@@ -109,7 +106,6 @@ describe("Auth Controller", () => {
 
       describe("POST /api/refreshToken", () => {
       test("Debe renovar el accessToken con una cookie válida", async () => {
-      // 1. Registramos y logueamos para obtener la cookie de refresco
       await request(app).post("/api/register").send(testUser);
       const loginRes = await request(app).post("/api/login").send({
         email: testUser.email,
@@ -119,7 +115,6 @@ describe("Auth Controller", () => {
       const cookies = loginRes.headers['set-cookie'];
       expect(cookies).toBeDefined();
 
-      // 2. Intentamos refrescar el token enviando la cookie
       const response = await request(app)
         .post("/api/refreshToken")
         .set("Cookie", cookies)
@@ -142,7 +137,6 @@ describe("Auth Controller", () => {
 
   describe("POST /api/logout", () => {
     test("Debe cerrar sesión y limpiar la cookie", async () => {
-      // 1. Registramos y logueamos
       await request(app).post("/api/register").send(testUser);
       const loginRes = await request(app).post("/api/login").send({
         email: testUser.email,
@@ -151,7 +145,6 @@ describe("Auth Controller", () => {
 
       const cookies = loginRes.headers['set-cookie'];
       
-      // 2. Cerramos sesión
       const response = await request(app)
         .post("/api/logout")
         .set("Cookie", cookies)
@@ -160,11 +153,9 @@ describe("Auth Controller", () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("message", "cierre de sesión exitoso");
       
-      // Verificamos que se intente limpiar la cookie
       const logoutCookies = response.headers['set-cookie'][0];
       expect(logoutCookies).toMatch(/refreshToken=;/);
 
-      // Verificamos que el token se haya eliminado de la base de datos
       const tokensCount = await RefreshToken.countDocuments();
       expect(tokensCount).toBe(0);
     });
@@ -172,7 +163,6 @@ describe("Auth Controller", () => {
 
   describe("PATCH /api/changePassword", () => {
     test("Debe cambiar la contraseña con éxito", async () => {
-      // 1. Registramos y logueamos para obtener el accessToken
       await request(app).post("/api/register").send(testUser);
       const loginRes = await request(app).post("/api/login").send({
         email: testUser.email,
@@ -180,7 +170,6 @@ describe("Auth Controller", () => {
       });
       const token = loginRes.body.accessToken;
 
-      // 2. Cambiamos la contraseña (máximo 20 caracteres según el validador)
       const newPassword = "NewPass123!";
       const response = await request(app)
         .patch("/api/changePassword")
@@ -194,14 +183,12 @@ describe("Auth Controller", () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("message", "Contraseña actualizada correctamente, inicie sesión nuevamente");
 
-      // 3. Verificar que el login con la vieja falla
       const oldLoginRes = await request(app).post("/api/login").send({
         email: testUser.email,
         password: testUser.password
       });
       expect(oldLoginRes.status).toBe(404);
 
-      // 4. Verificar que el login con la nueva funciona
       const newLoginRes = await request(app).post("/api/login").send({
         email: testUser.email,
         password: newPassword

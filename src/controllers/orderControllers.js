@@ -17,25 +17,21 @@ export const createOrderFromCart = async (req, res) => {
     const userId = req.user.id;
     const { paymentIntentId } = req.body;
 
-    // 1. Obtener el carrito con datos de productos
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: "El carrito está vacío" });
     }
 
-    // 2. Calcular el total y preparar los ítems del pedido
     let totalAmount = 0;
     const orderItems = [];
 
     for (const item of cart.items) {
       const product = item.productId;
       
-      // Verificar stock nuevamente por seguridad
       if (product.stock < item.quantity) {
         return res.status(400).json({ message: `Stock insuficiente para ${product.title}` });
       }
 
-      // Restar stock
       product.stock -= item.quantity;
       await product.save();
 
@@ -48,16 +44,15 @@ export const createOrderFromCart = async (req, res) => {
       totalAmount += product.price * item.quantity;
     }
 
-    // 3. Crear el pedido
     const newOrder = await Order.create({
       userId,
       items: orderItems,
       totalAmount,
-      status: "paid", // Asumimos pagado si viene de Stripe
+      // Marcamos paid porque este flujo se ejecuta despues de Stripe.
+      status: "paid",
       paymentIntentId
     });
 
-    // 4. Vaciar el carrito
     cart.items = [];
     await cart.save();
 

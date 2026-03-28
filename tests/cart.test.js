@@ -9,7 +9,6 @@ let productId;
 beforeAll(async () => {
   await dbHandler.connect();
   
-  // Crear usuario para obtener token
   const userData = { email: "cart@test.com", password: "Password123!", confirmPassword: "Password123!" };
   await request(app).post("/api/register").send(userData);
   const loginRes = await request(app).post("/api/login").send({
@@ -18,7 +17,6 @@ beforeAll(async () => {
   });
   token = loginRes.body.accessToken;
 
-  // Crear producto de prueba
   const product = await Product.create({
     fakeStoreId: 100,
     title: "Producto Carrito",
@@ -75,7 +73,6 @@ describe("Cart Controller", () => {
   });
 
   test("Debe vaciar el carrito", async () => {
-    // Agregamos algo primero
     await request(app)
       .post("/products/addProduct")
       .set("Authorization", `Bearer ${token}`)

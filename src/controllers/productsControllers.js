@@ -12,9 +12,8 @@ export const getProducts = async (req, res, next) => {
     }
 
     if (search) {
+      // Normalizamos abreviaturas para mantener compatibilidad con filtros del frontend.
       const s = search.toLowerCase();
-      // Si busca "w", filtramos por categorías que empiecen con "w" (como women's clothing)
-      // Si busca "clothing", incluimos men y women
       if (s === 'w' || s === 'women') {
         query.category = { $regex: "^women", $options: "i" };
       } else if (s === 'm' || s === 'men') {
@@ -39,7 +38,6 @@ export const getProducts = async (req, res, next) => {
 export const getProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // Buscamos primero por el ID de MongoDB y si no, por el fakeStoreId
     let producto = await Product.findOne({
       $or: [
         { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
@@ -60,7 +58,6 @@ export const getProduct = async (req, res, next) => {
 export const getCategoryProducts = async (req, res, next) => {
   const { category } = req.params;
   try {
-    // Si es clothing, buscamos por coincidencia parcial para incluir men y women
     const searchPattern = category.toLowerCase().includes('clothing') ? 'clothing' : `^${category}$`;
     const productos = await Product.find({ 
       category: new RegExp(searchPattern, "i"), 

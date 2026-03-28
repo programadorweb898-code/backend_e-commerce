@@ -10,7 +10,6 @@ let productId;
 beforeAll(async () => {
   await dbHandler.connect();
   
-  // Crear usuario para obtener token
   const userData = { email: "order@test.com", password: "Password123!", confirmPassword: "Password123!" };
   await request(app).post("/api/register").send(userData);
   const loginRes = await request(app).post("/api/login").send({
@@ -19,7 +18,6 @@ beforeAll(async () => {
   });
   token = loginRes.body.accessToken;
 
-  // Crear producto de prueba con stock conocido
   const product = await Product.create({
     fakeStoreId: 300,
     title: "Producto Pedido",
@@ -37,13 +35,11 @@ afterAll(async () => {
 describe("Order Controller", () => {
   
   test("Debe crear un pedido a partir del carrito y vaciarlo", async () => {
-    // 1. Agregar producto al carrito
     await request(app)
       .post("/products/addProduct")
       .set("Authorization", `Bearer ${token}`)
       .send({ productId: productId.toString(), quantity: 2 });
 
-    // 2. Realizar checkout del pedido
     const response = await request(app)
       .post("/api/orders/checkout")
       .set("Authorization", `Bearer ${token}`)
@@ -52,13 +48,11 @@ describe("Order Controller", () => {
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty("message", "Pedido creado correctamente");
     expect(response.body.order.items).toHaveLength(1);
-    expect(response.body.order.totalAmount).toBe(300); // 150 * 2
+    expect(response.body.order.totalAmount).toBe(300);
 
-    // 3. Verificar que el carrito esté vacío
     const cart = await Cart.findOne({ userId: response.body.order.userId });
     expect(cart.items).toHaveLength(0);
 
-    // 4. Verificar que el stock haya disminuido (10 - 2 = 8)
     const product = await Product.findById(productId);
     expect(product.stock).toBe(8);
   });
