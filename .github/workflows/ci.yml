@@ -29,3 +29,9 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          NODE_ENV: test
+          STRIPE_SECRET_KEY: sk_test_dummy
+          JWT_SECRET: jwt_test_secret
+          JWT_REFRESHTOKEN: jwt_test_refresh_secret
+          CLIENT_URL: http://localhost:3000
