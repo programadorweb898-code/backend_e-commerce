@@ -14,6 +14,6 @@ jobs:
     steps:
       - name: Trigger Render deploy hook
         run: |
-          curl -fsS -X POST "$MI_RENDER_DEPLOY_HOOK"
+          curl -fsS -X POST "$MY_RENDER_DEPLOY_HOOK"
         env:
-          MI_RENDER_DEPLOY_HOOK: ${{ secrets.MI_RENDER_DEPLOY_HOOK }}
+          MY_RENDER_DEPLOY_HOOK: ${{ secrets.MY_RENDER_DEPLOY_HOOK }}
