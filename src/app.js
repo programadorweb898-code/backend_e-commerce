@@ -33,6 +33,10 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 
+app.get("/healthz", (_req, res) => {
+  res.status(200).send("ok");
+});
+
 setupSwagger(app);
 
 app.use("/api", router);
