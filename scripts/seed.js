@@ -1,3 +1,5 @@
+// Legacy one-time seed script for Fake Store products.
+// Kept for reference; not used in normal runs.
 import Products from "./src/models/products.js"
 import mongoose from "mongoose"
 import dotenv from "dotenv"
