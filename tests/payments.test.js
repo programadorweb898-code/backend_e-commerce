@@ -129,6 +129,8 @@ describe("Payment Controller", () => {
   });
 
   test("Debe devolver 500 si Stripe falla al crear la sesión", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
     mockStripeCreate.mockRejectedValueOnce(new Error("stripe down"));
 
     await request(app)
@@ -143,6 +145,8 @@ describe("Payment Controller", () => {
     expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message", "Error al crear la sesión de pago");
     expect(response.body).toHaveProperty("error", "stripe down");
+
+    errorSpy.mockRestore();
   });
 
   test("Confirm payment: debe fallar si falta session_id", async () => {
