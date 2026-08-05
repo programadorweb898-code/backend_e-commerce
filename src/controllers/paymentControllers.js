@@ -5,7 +5,25 @@ import { sendPurchaseDetailsEmail } from "../../services/emailService.js";
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Si STRIPE_API_BASE está definido (p. ej. stripe-mock en tests de integración),
+// el SDK apunta ahí en vez de a la API real de Stripe.
+const buildStripeConfig = () => {
+  const base = process.env.STRIPE_API_BASE;
+  if (!base) return undefined;
+  try {
+    const url = new URL(base);
+    return {
+      protocol: url.protocol.replace(":", ""),
+      host: url.hostname,
+      port: Number(url.port || 443),
+    };
+  } catch {
+    return undefined;
+  }
+};
+
+const stripeConfig = buildStripeConfig();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, stripeConfig);
 
 export const createCheckoutSession = async (req, res) => {
   try {

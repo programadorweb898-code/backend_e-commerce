@@ -36,3 +36,19 @@ jobs:
           JWT_SECRET: jwt_test_secret
           JWT_REFRESHTOKEN: jwt_test_refresh_secret
           CLIENT_URL: http://localhost:3000
+
+      - name: Setup stripe-mock
+        run: |
+          curl -L -o /tmp/stripe-mock.tar.gz https://github.com/stripe/stripe-mock/releases/download/v0.202.0/stripe-mock_0.202.0_linux_amd64.tar.gz
+          tar -xzf /tmp/stripe-mock.tar.gz -C /tmp
+          /tmp/stripe-mock -port 12111 &
+
+      - name: Test de integración (Stripe)
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          STRIPE_SECRET_KEY: sk_test_dummy
+          STRIPE_API_BASE: http://localhost:12111
+          JWT_SECRET: jwt_test_secret
+          JWT_REFRESHTOKEN: jwt_test_refresh_secret
+          CLIENT_URL: http://localhost:3000

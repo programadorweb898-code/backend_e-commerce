@@ -53,10 +53,36 @@ NODE_ENV=development
 npm run dev      # desarrollo con nodemon
 npm start        # production
 npm run seed     # carga inicial de productos (Fake Store API)
-npm test         # tests con jest
+npm test         # tests unitarios con jest
+npm run test:integration # tests de integración con Stripe (requiere stripe-mock)
 npm run lint     # lint
 npm run lint:fix # lint + fix
 ```
+
+## Tests de integración con Stripe (stripe-mock)
+Los tests en `integration/` validan el contrato real con la API de Stripe usando el servidor oficial `stripe-mock` (sin costos, sin red real, determinista).
+
+Requisito: tener `stripe-mock` corriendo en `http://localhost:12111`.
+
+```bash
+# Opción A: con Docker
+docker run --rm -p 12111:12111 stripe/stripe-mock:latest
+
+# Opción B: con Stripe CLI
+stripe mock
+
+# Opción C: binario descargado de https://github.com/stripe/stripe-mock/releases
+./stripe-mock -port 12111
+```
+
+Luego:
+```bash
+npm run test:integration
+```
+
+Si `stripe-mock` no está disponible, los tests se omiten (skip) sin romper la suite. La app apunta al mock mediante la variable `STRIPE_API_BASE` (ver `src/controllers/paymentControllers.js`); sin esa variable, Stripe usa la API real como siempre.
+
+Nota: `stripe-mock` devuelve `payment_status: "unpaid"`, por lo que el flujo "pagado" (vaciado de carrito + email) se cubre con tests unitarios y validación manual con una key `sk_test_...` real.
 
 ## Seed de productos
 El script de seed se dejo para referencia y uso puntual. Consume `https://fakestoreapi.com/products` y guarda los productos en MongoDB con `stock=10`.
