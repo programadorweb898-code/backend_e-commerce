@@ -49,11 +49,13 @@ export const createOrderService = async (userId, paymentIntentId) => {
 export const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log(`Buscando pedidos para el usuario: ${userId}`);
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    console.log(`Pedidos encontrados: ${orders.length}`);
     res.json({ orders });
   } catch (err) {
     res.status(500).json({ message: "Error al obtener los pedidos" });
-    console.error("Error: ", err.message);
+    console.error("Error detallado al obtener pedidos: ", err);
   }
 };
 
