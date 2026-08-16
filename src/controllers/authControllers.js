@@ -9,6 +9,14 @@ import {sendResetEmail} from "../../services/emailService.js"
 dotenv.config();
 const hashToken=(token)=> crypto.createHash("sha256").update(token).digest("hex");
 
+const isProd = () => process.env.NODE_ENV === "production";
+
+const cookieOptions = () => ({
+  httpOnly: true,
+  secure: isProd(),
+  sameSite: isProd() ? "none" : "lax",
+});
+
 export const registerControllers=async(req,res)=>{
   const {email,password,confirmPassword}=req.body;
   try{
@@ -55,11 +63,7 @@ export const loginControllers=async (req,res)=>{
       token:hashToken(refreshToken),
       createAt:new Date()
     });
-    res.cookie("refreshToken",refreshToken,{
-      httpOnly:true,
-      secure:process.env.NODE_ENV === "production",
-      sameSite:"strict"
-    });
+    res.cookie("refreshToken",refreshToken,cookieOptions());
     res.json({accessToken,message:"Login exitoso"});
     
   }catch(err){
@@ -104,12 +108,7 @@ export const refreshTokenControllers=async(req,res)=>{
     createAt:new Date()
   });
   
-  res.cookie("refreshToken",newRefreshToken,{
-    httpOnly:true,
-    secure:process.env.NODE_ENV === "production",
-    sameSite:"strict"
-    
-  });
+  res.cookie("refreshToken",newRefreshToken,cookieOptions());
   res.json({accessToken:newAccessToken})
     
   }catch(err){
@@ -126,11 +125,7 @@ export const logoutControllers=async(req,res)=>{
   if(refreshToken){
     await RefreshToken.deleteOne({token: hashToken(refreshToken)});
   };
-  res.clearCookie("refreshToken",{
-    httpOnly:true,
-    secure:process.env.NODE_ENV === "production",
-    sameSite:"strict"
-  });
+  res.clearCookie("refreshToken",cookieOptions());
   res.json({message:"cierre de sesión exitoso"})
   }catch(err){
     res.status(500).json({message:"Error sl cerrar sesión"})
@@ -155,11 +150,7 @@ export const changePassword=async(req,res,next)=>{
     user.password=newPassword;
     await user.save();
     await RefreshToken.deleteMany({userId:user._id});
-    res.clearCookie("refreshToken",{
-      httpOnly:true,
-      secure:process.env.NODE_ENV === "production",
-      sameSite:"strict"
-    });
+    res.clearCookie("refreshToken",cookieOptions());
     res.status(200).json({
       message:"Contraseña actualizada correctamente, inicie sesión nuevamente"
     })
