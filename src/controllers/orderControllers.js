@@ -2,18 +2,13 @@ import Order from "../models/orders.js";
 import Cart from "../models/cart.js";
 
 /**
- * Service to create an order from a user's cart.
+ * Service to create an order from a user's cart items.
  */
-export const createOrderService = async (userId, paymentIntentId) => {
-  const cart = await Cart.findOne({ userId }).populate("items.productId");
-  if (!cart || cart.items.length === 0) {
-    throw new Error("El carrito está vacío");
-  }
-
+export const createOrderService = async (userId, paymentIntentId, cartItems) => {
   let totalAmount = 0;
   const orderItems = [];
 
-  for (const item of cart.items) {
+  for (const item of cartItems) {
     const product = item.productId;
     
     if (product.stock < item.quantity) {
@@ -40,9 +35,6 @@ export const createOrderService = async (userId, paymentIntentId) => {
     paymentIntentId
   });
 
-  cart.items = [];
-  await cart.save();
-
   return newOrder;
 };
 
@@ -65,7 +57,15 @@ export const createOrderFromCart = async (req, res) => {
     const userId = req.user.id;
     const { paymentIntentId } = req.body;
     
-    const newOrder = await createOrderService(userId, paymentIntentId);
+    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ message: "El carrito está vacío" });
+    }
+
+    const newOrder = await createOrderService(userId, paymentIntentId, cart.items);
+
+    cart.items = [];
+    await cart.save();
 
     res.status(201).json({ message: "Pedido creado correctamente", order: newOrder });
   } catch (err) {

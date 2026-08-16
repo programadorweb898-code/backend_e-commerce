@@ -106,12 +106,12 @@ export const confirmPayment = async (req, res) => {
           }
         }));
 
+        // Creamos el pedido en la base de datos
+        await createOrderService(userId, session_id, cart.items);
+
         // Vaciamos primero para evitar reintentos duplicando pedidos si el email falla.
         cart.items = [];
         await cart.save();
-
-        // Creamos el pedido en la base de datos
-        await createOrderService(userId, session_id);
 
         try {
           await sendPurchaseDetailsEmail(customerEmail, itemsForEmail, total, lang || "es");
