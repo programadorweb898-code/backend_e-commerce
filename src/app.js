@@ -11,6 +11,7 @@ import { setupSwagger } from "../config/swagger.js";
 
 dotenv.config();
 const app = express();
+app.disable("etag");
 
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
