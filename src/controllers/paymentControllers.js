@@ -36,6 +36,10 @@ export const createCheckoutSession = async (req, res) => {
       return res.status(400).json({ message: "El carrito está vacío" });
     }
 
+    const User = (await import("../models/users.js")).default;
+    const user = await User.findById(userId);
+    const customerEmail = user?.email;
+
     const lineItems = cart.items.map(item => ({
       price_data: {
         currency: "usd",
@@ -52,6 +56,7 @@ export const createCheckoutSession = async (req, res) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
+      customer_email: customerEmail,
       locale: lang || "es",
       success_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/success?session_id={CHECKOUT_SESSION_ID}&lang=${lang || "es"}`,
       cancel_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/cancel`,
@@ -84,7 +89,7 @@ export const confirmPayment = async (req, res) => {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
 
-      const userEmail = user.email;
+      const customerEmail = session.customer_details?.email || user.email;
 
       const cart = await Cart.findOne({ userId }).populate("items.productId");
 
@@ -105,7 +110,7 @@ export const confirmPayment = async (req, res) => {
         await cart.save();
 
         try {
-          await sendPurchaseDetailsEmail(userEmail, itemsForEmail, total, lang || "es");
+          await sendPurchaseDetailsEmail(customerEmail, itemsForEmail, total, lang || "es");
         } catch (emailError) {
           console.error("Error NO CRÍTICO al enviar email:", emailError.message);
         }
