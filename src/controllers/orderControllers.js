@@ -42,7 +42,7 @@ export const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id;
     console.log(`Buscando pedidos para el usuario: ${userId}`);
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ userId }).populate("items.productId").sort({ createdAt: -1 });
     console.log(`Pedidos encontrados: ${orders.length}`);
     res.setHeader("Cache-Control", "no-store");
     res.json({ orders });
