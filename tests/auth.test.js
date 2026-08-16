@@ -6,10 +6,12 @@ import User from "../src/models/users.js";
 import RefreshToken from "../src/models/refreshToken.js";
 import crypto from "crypto";
 
-jest.mock("nodemailer", () => ({
-  createTransport: jest.fn().mockReturnValue({
-    sendMail: jest.fn().mockResolvedValue({ messageId: "test-id" })
-  })
+jest.mock("resend", () => ({
+  Resend: class {
+    constructor() {
+      this.emails = { send: jest.fn().mockResolvedValue({ id: "test-id" }) };
+    }
+  },
 }));
 
 const testUser = {

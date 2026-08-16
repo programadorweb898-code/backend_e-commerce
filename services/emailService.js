@@ -1,18 +1,21 @@
-import {transporter} from "../config/mail.js"
-import dotenv from "dotenv"
+import { resend } from "../config/mail.js";
+import dotenv from "dotenv";
+
 dotenv.config();
 
-export const sendResetEmail=async(to,link)=>{
-  await transporter.sendMail({
-    from: `Soporte <${process.env.USER_EMAIL}>`,
+const from = process.env.RESEND_FROM || "Soporte E-Commerce <onboarding@resend.dev>";
+
+export const sendResetEmail = async (to, link) => {
+  await resend.emails.send({
+    from,
     to,
-    subject:"Restablecer contraseña",
-    html:`
+    subject: "Restablecer contraseña",
+    html: `
       <h1>Recuperar contraseña</h1>
       <a href="${link}">${link}</a>
       `
-  })
-}
+  });
+};
 
 export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es") => {
   const isEn = lang === "en";
@@ -28,23 +31,22 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
 
   const itemsHtml = cartItems.map((item, index) => {
     let imageUrl = (item.productId?.image || "").trim();
-    // Normalizamos la URL para que Nodemailer pueda descargarla de forma consistente.
     if (imageUrl.startsWith("http://")) {
       imageUrl = imageUrl.replace("http://", "https://");
     }
-    
+
     if (imageUrl.startsWith("/")) {
       const baseUrl = process.env.CLIENT_URL || "http://localhost:3000";
       imageUrl = `${baseUrl}${imageUrl}`;
     }
 
     const cid = `product-image-${index}`;
-    
+
     if (imageUrl) {
       attachments.push({
         filename: `product-${index}.jpg`,
         path: imageUrl,
-        cid: cid
+        contentId: cid
       });
     }
 
@@ -78,8 +80,8 @@ export const sendPurchaseDetailsEmail = async (to, cartItems, total, lang = "es"
     `;
   }).join("");
 
-  await transporter.sendMail({
-    from: `Soporte E-Commerce <${process.env.USER_EMAIL}>`,
+  await resend.emails.send({
+    from,
     to,
     subject,
     attachments,

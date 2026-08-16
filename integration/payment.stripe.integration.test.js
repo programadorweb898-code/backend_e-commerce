@@ -3,11 +3,13 @@ import { execSync } from "node:child_process";
 
 jest.setTimeout(60000);
 
-// Nodemailer se mockea para que este test nunca intente mandar emails reales.
-jest.mock("nodemailer", () => ({
-  createTransport: jest.fn().mockReturnValue({
-    sendMail: jest.fn().mockResolvedValue({ messageId: "test-id" })
-  })
+// Resend se mockea para que este test nunca intente mandar emails reales.
+jest.mock("resend", () => ({
+  Resend: class {
+    constructor() {
+      this.emails = { send: jest.fn().mockResolvedValue({ id: "test-id" }) };
+    }
+  },
 }));
 
 const MOCK_URL = process.env.STRIPE_MOCK_URL || "http://localhost:12111";
