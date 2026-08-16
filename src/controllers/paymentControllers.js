@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import dotenv from "dotenv";
 import Cart from "../models/cart.js";
 import { sendPurchaseDetailsEmail } from "../../services/emailService.js";
+import { createOrderService } from "./orderControllers.js";
 
 dotenv.config();
 
@@ -108,6 +109,9 @@ export const confirmPayment = async (req, res) => {
         // Vaciamos primero para evitar reintentos duplicando pedidos si el email falla.
         cart.items = [];
         await cart.save();
+
+        // Creamos el pedido en la base de datos
+        await createOrderService(userId, session_id);
 
         try {
           await sendPurchaseDetailsEmail(customerEmail, itemsForEmail, total, lang || "es");
