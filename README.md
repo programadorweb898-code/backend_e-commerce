@@ -1,6 +1,6 @@
 # E-commerce Backend API
 
-Backend API para un e-commerce con autenticacion, catalogo, carrito, pagos y ordenes. Implementado con Express y MongoDB, con documentacion Swagger y pagos via Stripe.
+Backend API para un e-commerce con autenticacion, catalogo, carrito, pagos y ordenes. Implementado con Express y MongoDB, con documentacion Swagger, pagos via Stripe y monitoreo de errores con Sentry.
 
 ## Caracteristicas
 - Autenticacion con JWT y refresh token en cookie httpOnly
@@ -8,14 +8,16 @@ Backend API para un e-commerce con autenticacion, catalogo, carrito, pagos y ord
 - Carrito por usuario con alta/baja/ajuste de cantidades
 - Flujo de pagos con Stripe Checkout
 - Ordenes creadas desde el carrito con control de stock
-- Emails de recuperacion de password y confirmacion de compra
+- Emails de recuperacion de password y confirmacion de compra (via Resend)
+- Monitoreo de errores con Sentry
 - Documentacion Swagger en /api-docs
 
 ## Stack
 - Node.js + Express
 - MongoDB + Mongoose
 - JWT, bcryptjs
-- Stripe, Nodemailer
+- Stripe, Resend (emails)
+- Sentry (monitoreo de errores)
 - Swagger (swagger-jsdoc, swagger-ui-express)
 
 ## Requisitos
@@ -43,8 +45,9 @@ CLIENT_URL=http://localhost:3000
 JWT_SECRET=tu_secreto_jwt
 JWT_REFRESHTOKEN=tu_secreto_refresh
 STRIPE_SECRET_KEY=sk_test_xxx
-USER_EMAIL=tu_correo@gmail.com
-PASS_EMAIL=tu_password_o_app_password
+RESEND_API_KEY=re_xxx
+RESEND_FROM=Soporte E-Commerce <tudominio@tudominio.com>
+SENTRY_DSN=https://tu_dsn@sentry.io/xxx
 NODE_ENV=development
 ```
 
@@ -112,4 +115,5 @@ Servidor por defecto en `http://localhost:4000`.
 
 ## Notas
 - El refresh token se guarda en cookie httpOnly.
-- Para emails con Gmail se recomienda App Password.
+- Los emails se envian via Resend. Para desarrollo se puede usar el remitente por defecto `onboarding@resend.dev`.
+- Sentry se inicializa en `instrument.js` (primer import en `src/index.js`) y captura errores via `Sentry.setupExpressErrorHandler`. Si `SENTRY_DSN` esta vacio en desarrollo, Sentry solo registra un warning y no envia eventos.
