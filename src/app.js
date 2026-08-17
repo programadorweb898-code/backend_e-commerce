@@ -1,3 +1,4 @@
+import "../instrument.js";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -48,6 +49,8 @@ app.use("/api/orders", orders);
 app.use((req, res) => {
   res.status(404).json({ message: "Ruta no encontrada" });
 });
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use((err, req, res, _next) => {
   res.status(400).json({ message: err.message });
